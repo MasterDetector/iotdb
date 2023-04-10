@@ -26,28 +26,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CpuMetrics implements IMetricSet {
-  private final ICpuMetricsManager cpuMetricsManager = ICpuMetricsManager.getCpuMetricsManager();
+  private final AbstractCpuMetricsManager cpuMetricsManager;
   private static final Logger log = LoggerFactory.getLogger(CpuMetrics.class);
   private final String processName;
   private static final String MODULE = "module";
   private static final String CPU_USAGE = "cpu_usage";
-  private final String dataNode = "datanode";
-  private final String configNode = "confignode";
-  private final String[] dataNodeModules =
-      new String[] {"query", "write", "flush", "compaction", "consensus", "metadata", "sync"};
-  private final String[] configNodeModules = new String[] {"consensus", "rpc"};
+
   private final String[] modules;
 
   public CpuMetrics(String processName) {
     this.processName = processName;
-    if (this.processName.equals(dataNode)) {
-      this.modules = dataNodeModules;
-    } else if (this.processName.equals(configNode)) {
-      this.modules = configNodeModules;
+    if (this.processName.equals(CpuMetricsConstant.DATA_NODE)) {
+      this.modules = CpuMetricsConstant.DATA_NODE_MODULES;
+    } else if (this.processName.equals(CpuMetricsConstant.CONFIG_NODE)) {
+      this.modules = CpuMetricsConstant.CONFIG_NODE_MODULES;
     } else {
       log.error("Invalid process name: {}", processName);
       modules = new String[0];
     }
+
+    this.cpuMetricsManager = AbstractCpuMetricsManager.getCpuMetricsManager(processName);
   }
 
   @Override

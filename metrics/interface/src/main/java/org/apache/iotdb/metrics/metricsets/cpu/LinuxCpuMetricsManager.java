@@ -33,11 +33,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class LinuxCpuMetricsManager implements ICpuMetricsManager {
+public class LinuxCpuMetricsManager extends AbstractCpuMetricsManager {
   private static final Logger log = LoggerFactory.getLogger(LinuxCpuMetricsManager.class);
-  private final String processName;
-  private final String pid;
-  private final String[] modules;
 
   @SuppressWarnings("squid:S1075")
   private static final String SYSTEM_STAT_FILE = "/proc/stat";
@@ -48,15 +45,18 @@ public class LinuxCpuMetricsManager implements ICpuMetricsManager {
   @SuppressWarnings("squid:S1075")
   private String collectThreadIdsPath = "/proc/%s/task";
 
-  public LinuxCpuMetricsManager(String processName, String[] modules) {
-    this.processName = processName;
-    this.modules = modules;
-    this.pid = String.valueOf(Thread.currentThread().getId());
+  public LinuxCpuMetricsManager(String processName) {
+    super(processName, String.valueOf(Thread.currentThread().getId()));
     this.collectThreadIdsPath = String.format(collectThreadIdsPath, pid);
   }
 
   @Override
-  public Map<String, Double> getCpuUsage() {
+  public Map<String, Double> getCpuUsageForPerThread() {
+    return null;
+  }
+
+  @Override
+  public Map<String, Double> getCpuUsageForPerModule() {
     return null;
   }
 
@@ -115,6 +115,33 @@ public class LinuxCpuMetricsManager implements ICpuMetricsManager {
    * @return a map from thread id to cpu time
    */
   private Map<String, Long> collectCpuTimeForPerThread(Set<String> threadIds) {
-    return null;
+    Map<String, Long> cpuTimeMap = new HashMap<>(threadIds.size() + 1, 1);
+    for (String threadId : threadIds) {
+      cpuTimeMap.put(threadId, collectCpuTimeForOneThread(threadId));
+    }
+    return cpuTimeMap;
+  }
+
+  /**
+   * Collect the cpu time for one specific thread.
+   *
+   * @param threadId the pid of the thread
+   * @return the cpu time of a thread
+   */
+  private long collectCpuTimeForOneThread(String threadId) {
+    File statFile = new File(String.format(THREAD_STAT_FILE, threadId));
+    if (!statFile.exists()) {
+      log.error("Cannot find file {}", statFile);
+      return 0;
+    }
+
+    try {
+      String statLine = Files.readAllLines(Paths.get(statFile.getAbsolutePath())).get(0);
+      String[] cpuInfo = statLine.split("\\s+");
+      return Long.parseLong(cpuInfo[13]) + Long.parseLong(cpuInfo[14]);
+    } catch (IOException e) {
+      log.error("Cannot read file {}", statFile, e);
+      return 0;
+    }
   }
 }
