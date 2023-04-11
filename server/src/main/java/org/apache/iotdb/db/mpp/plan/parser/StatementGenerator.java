@@ -114,11 +114,15 @@ import java.util.Objects;
 
 import static org.apache.iotdb.commons.conf.IoTDBConstant.MULTI_LEVEL_PATH_WILDCARD;
 import static org.apache.iotdb.db.service.thrift.impl.MLNodeRPCServiceImpl.ML_METRICS_PATH_PREFIX;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Convert SQL and RPC requests to {@link Statement}. */
 public class StatementGenerator {
   private static final PerformanceOverviewMetrics PERFORMANCE_OVERVIEW_METRICS =
       PerformanceOverviewMetrics.getInstance();
+
+  private static final ConcurrentHashMap<String, PartialPath> partialPathCache =
+      new ConcurrentHashMap<>();
 
   public static Statement createStatement(String sql, ZoneId zoneId) {
     return invokeParser(sql, zoneId);
@@ -357,7 +361,11 @@ public class StatementGenerator {
     List<InsertRowStatement> insertRowStatementList = new ArrayList<>();
     for (int i = 0; i < req.prefixPaths.size(); i++) {
       InsertRowStatement statement = new InsertRowStatement();
-      statement.setDevicePath(new PartialPath(req.getPrefixPaths().get(i)));
+      String prefix = req.getPrefixPaths().get(i);
+      if (!partialPathCache.containsKey(prefix)) {
+        partialPathCache.put(prefix, new PartialPath(prefix));
+      }
+      statement.setDevicePath(partialPathCache.get(prefix));
       statement.setMeasurements(req.getMeasurementsList().get(i).toArray(new String[0]));
       statement.setTime(req.getTimestamps().get(i));
       statement.fillValues(req.valuesList.get(i));
