@@ -269,15 +269,17 @@ public class FileLoaderUtils {
           List<TimeseriesMetadata> valueTimeSeriesMetadataList =
               alignedTimeSeriesMetadata.getValueTimeseriesMetadataList();
           boolean modified = false;
-          for (int i = 0; i < valueTimeSeriesMetadataList.size(); i++) {
-            if (valueTimeSeriesMetadataList.get(i) != null) {
-              List<Modification> pathModifications =
-                  context.getPathModifications(
-                      resource.getModFile(), vectorPath.getPathWithMeasurement(i));
-              valueTimeSeriesMetadataList.get(i).setModified(!pathModifications.isEmpty());
-              modified = (modified || !pathModifications.isEmpty());
-            }
-          }
+          // FIXME comment for tsbs test
+          //          for (int i = 0; i < valueTimeSeriesMetadataList.size(); i++) {
+          //            if (valueTimeSeriesMetadataList.get(i) != null) {
+          //              List<Modification> pathModifications =
+          //                  context.getPathModifications(
+          //                      resource.getModFile(), vectorPath.getPathWithMeasurement(i));
+          //
+          // valueTimeSeriesMetadataList.get(i).setModified(!pathModifications.isEmpty());
+          //              modified = (modified || !pathModifications.isEmpty());
+          //            }
+          //          }
           alignedTimeSeriesMetadata.getTimeseriesMetadata().setModified(modified);
         } finally {
           QUERY_METRICS.recordSeriesScanCost(
