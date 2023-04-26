@@ -315,16 +315,9 @@ public class MasterDetector {
     fillNullValue();
     buildKDTree();
     call_std();
-    ArrayList<Double> zero_tuple = new ArrayList<>();
-    zero_tuple.add(0.0);
-    zero_tuple.add(0.0);
-    zero_tuple.add(0.0);
-    for (int i = 0; i < 10; i++) {
-      this.td.set(i, zero_tuple);
-    }
+
     getOriginalAnomaliesAndLearnModel();
     findInitialWindow(p);
-    System.out.println(initial_window[0] + " " + initial_window[1]);
 
     for (int j = 0; j <= initial_window[1]; j++) {
       this.td_repaired.add(this.td.get(j));

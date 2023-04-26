@@ -61,7 +61,7 @@ public class UDTFMasterDetect implements UDTF {
       throws Exception {
     configurations.setAccessStrategy(new RowByRowAccessStrategy());
     output_type = parameters.getStringOrDefault("output_type", "repair");
-    if (output_type.equals("repairing")) configurations.setOutputDataType(Type.DOUBLE);
+    if (output_type.equals("repair")) configurations.setOutputDataType(Type.DOUBLE);
     else configurations.setOutputDataType(Type.BOOLEAN);
     int columnCnt = (parameters.getDataTypes().size() - 1) / 2;
     int k = parameters.getIntOrDefault("k", -1);
